@@ -18,16 +18,6 @@ import { IMappingService } from './mapping.service';
 export abstract class BaseDeliveryQueryService {
 
     /**
-    * Default number of retry attempts when user did not set any
-    */
-    private readonly defaultRetryAttempts: number = 3;
-
-    /**
-     * List of response codes that can be retried
-     */
-    private readonly defaultRetryStatusCodes: number[] = [500];
-
-    /**
      * Header name for SDK usage
      */
     private readonly sdkVersionHeader: string = 'X-KC-SDKID';
@@ -68,13 +58,6 @@ export abstract class BaseDeliveryQueryService {
          */
         protected readonly mappingService: IMappingService
     ) {
-    }
-
-    retryPromise<T>(promise: Promise<T>): Promise<T> {
-        return this.httpService.retryPromise<T>(promise, {
-            maxRetryAttempts: this.getRetryAttempts(),
-            useRetryForResponseCodes: this.getRetryStatusCodes()
-        }, 1);
     }
 
     /**
@@ -172,10 +155,6 @@ export abstract class BaseDeliveryQueryService {
             serviceConfig = {};
         }
 
-        if (serviceConfig.headers) {
-
-        }
-
         return this.httpService
             .get<BaseKontentError, TRawData>(
                 {
@@ -183,9 +162,8 @@ export abstract class BaseDeliveryQueryService {
                     mapError: error => mapBaseKontentError(error)
                 },
                 {
-                    headers: this.getHeaders(queryConfig),
-                    maxRetryAttempts: this.getRetryAttempts(),
-                    useRetryForResponseCodes: this.getRetryStatusCodes(),
+                    retryStrategy: this.config.retryStrategy,
+                    headers: this.getHeaders(queryConfig, serviceConfig.headers ? serviceConfig.headers : []),
                     logErrorToConsole: this.config.isDeveloperMode
                 }
             )
@@ -202,35 +180,6 @@ export abstract class BaseDeliveryQueryService {
     */
     protected getBaseUrl(queryConfig: IQueryConfig): string {
         return this.getDomain(queryConfig) + '/' + this.config.projectId;
-    }
-
-    /**
-    * Gets retry status code array
-    */
-    private getRetryStatusCodes(): number[] {
-        if (this.config.retryStatusCodes) {
-            return this.config.retryStatusCodes;
-        }
-
-        return this.defaultRetryStatusCodes;
-    }
-
-    /**
-    * Gets number of retry attempts used by queries
-    */
-    private getRetryAttempts(): number {
-        // get the attempts
-        let attempts: number;
-
-        if (this.config.retryAttempts || this.config.retryAttempts === 0) {
-            // use custom defined number of attempts
-            attempts = this.config.retryAttempts;
-        } else {
-            // use default attempts
-            attempts = this.defaultRetryAttempts;
-        }
-
-        return attempts;
     }
 
     /**

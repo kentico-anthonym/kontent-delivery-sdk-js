@@ -1,29 +1,18 @@
 import { ContentItem, ItemResponses } from '../../../../lib';
-import { Actor, Context, defaultTypeResolvers, Movie, setup } from '../../../setup';
+import { Actor, defaultTypeResolvers, Movie } from '../../../setup';
 import { getDeliveryClientWithJsonAndHeaders } from '../../setup';
 import * as responseJson from './items-feed.spec.json';
 
-describe('Items feed', () => {
-    const context = new Context();
-    setup(context);
-
-    let response: ItemResponses.ItemsFeedResponse<Movie>;
+describe('Items feed all', () => {
+    let response: ItemResponses.ItemsFeedAllResponse<Movie>;
 
     beforeAll(done => {
-        getDeliveryClientWithJsonAndHeaders(
-            responseJson,
-            [
-                {
-                    header: 'X-Continuation',
-                    value: 'tokenX'
-                }
-            ],
-            {
-                projectId: 'x',
-                typeResolvers: defaultTypeResolvers
-            }
-        )
-            .itemsFeed<Movie>()
+        getDeliveryClientWithJsonAndHeaders(responseJson, [], {
+            projectId: 'xx',
+            isDeveloperMode: true,
+            typeResolvers: defaultTypeResolvers
+        })
+            .itemsFeedAll<Movie>()
             .queryConfig({
                 richTextResolver: item => {
                     if (item.system.type === 'actor') {
@@ -40,12 +29,16 @@ describe('Items feed', () => {
             });
     });
 
-    it(`Continuation token should be set`, () => {
-        expect(response.continuationToken).toEqual('tokenX');
+    it(`Debug should be an array of responses`, () => {
+        expect(response.debug).toEqual(jasmine.any(Array));
+
+        if (response.debug) {
+            expect(response.debug.length).toEqual(1);
+        }
     });
 
     it(`Response should be of proper type`, () => {
-        expect(response).toEqual(jasmine.any(ItemResponses.ItemsFeedResponse));
+        expect(response).toEqual(jasmine.any(ItemResponses.ItemsFeedAllResponse));
     });
 
     it(`Response should have all properties assigned`, () => {

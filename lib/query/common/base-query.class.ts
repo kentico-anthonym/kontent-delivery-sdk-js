@@ -5,7 +5,7 @@ import { IDeliveryClientConfig } from '../../config';
 import { IKontentResponse, IQueryConfig, Parameters } from '../../models';
 import { QueryService } from '../../services';
 
-export abstract class BaseQuery<TResponse extends IKontentResponse> {
+export abstract class BaseQuery<TResponse extends IKontentResponse<any>> {
   protected parameters: IQueryParameter[] = [];
   protected customUrl?: string;
 
@@ -55,7 +55,7 @@ export abstract class BaseQuery<TResponse extends IKontentResponse> {
   }
 
   toPromise(): Promise<TResponse> {
-    return this.queryService.retryPromise(this.toObservable().toPromise());
+    return this.toObservable().toPromise();
   }
 
   protected resolveUrlInternal(action: string): string {

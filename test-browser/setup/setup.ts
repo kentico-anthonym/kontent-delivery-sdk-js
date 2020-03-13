@@ -3,7 +3,7 @@ import { Actor, Movie } from '../setup';
 import { Context } from './context';
 
 // ---------- default setup ------------- //
-const defaultTypeResolvers: TypeResolver[] = [
+export const defaultTypeResolvers: TypeResolver[] = [
     new TypeResolver('movie', (data) => new Movie()),
     new TypeResolver('actor', (data) => new Actor())
 ];
@@ -52,10 +52,9 @@ export function setup(context: Context) {
             baseUrl: context.baseUrl,
             basePreviewUrl: context.basePreviewUrl,
         },
-        retryAttempts: context.retryAttempts,
+        retryStrategy: context.retryStrategy,
         isDeveloperMode: context.isDeveloperMode,
         globalHeaders: context.globalHeaders,
-        retryStatusCodes: context.retryStatusCodes,
         httpInterceptors: {
             requestInterceptor: (config) => {
                 return config;
